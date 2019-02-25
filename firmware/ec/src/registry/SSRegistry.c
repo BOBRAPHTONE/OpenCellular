@@ -16,18 +16,22 @@
 #include "inc/common/global_header.h"
 #include "inc/utils/ocmp_util.h"
 #include "inc/utils/util.h"
+#include "src/filesystem/fs_wrapper.h"
 
 #define OCMP_ACTION_TYPE_GET 1
 #define OCMP_ACTION_TYPE_SET 2
 #define OCMP_ACTION_TYPE_REPLY 3
 #define OCMP_ACTION_TYPE_ACTIVE 4
 
+#define LVAL_POS 7
+#define AVAL_POS 9
+
 /* TODO: configurable directory (allow us to target different platforms) */
 #include "platform/oc-sdr/schema/schema.h"
 
 #include <ti/sysbios/BIOS.h>
 
-#define OC_TASK_STACK_SIZE 2048
+#define OC_TASK_STACK_SIZE 4096
 #define OC_TASK_PRIORITY 2
 
 static char OC_task_stack[SUBSYSTEM_COUNT][OC_TASK_STACK_SIZE];
@@ -86,7 +90,8 @@ static bool _paramIsValid(const Parameter *param)
 }
 
 void OCMP_GenerateAlert(const AlertData *alert_data, unsigned int alert_id,
-                        const void *data)
+                        const void *data, const void *lValue,
+                        OCMPActionType actionType)
 {
     if (!alert_data) {
         return;
@@ -113,22 +118,30 @@ void OCMP_GenerateAlert(const AlertData *alert_data, unsigned int alert_id,
     size_t param_size = (_paramSize(param) + 3) & ~0x03;
 
     OCMPMessageFrame *pMsg = create_ocmp_msg_frame(
-        alert_data->subsystem, OCMP_MSG_TYPE_ALERT, OCMP_AXN_TYPE_ACTIVE,
+        alert_data->subsystem, OCMP_MSG_TYPE_ALERT, actionType,
         alert_data->componentId + 1, /* TODO: inconsistency indexing in host */
         parameters, param_size);
     if (pMsg) {
-        memcpy(pMsg->message.ocmp_data, data, _paramSize(param));
+        memcpy(pMsg->message.ocmp_data + LVAL_POS, lValue, _paramSize(param));
+        memcpy(pMsg->message.ocmp_data + AVAL_POS, data, _paramSize(param));
         Util_enqueueMsg(bigBrotherTxMsgQueue, semBigBrotherMsg,
                         (uint8_t *)pMsg);
     } else {
         LOGGER_ERROR("ERROR::Unable to allocate alert packet\n");
     }
+    FILESystemStruct fileSysStruct = {
+        "alertLog",          FRAME_SIZE,
+        NO_OF_ALERT_FILES,   (OCMPMessageFrame *)pMsg,
+        MAX_ALERT_FILE_SIZE, WRITE_FLAG
+    };
+    Util_enqueueMsg(fsRxMsgQueue, semFilesysMsg, (uint8_t *)&fileSysStruct);
+    Semaphore_pend(semFSwriteMsg, BIOS_WAIT_FOREVER);
 }
 
 static bool _handleMsgTypeCmd(OCMPMessageFrame *pMsg, const Component *comp)
 {
     const Command *cmd;
-    const Component *dev;
+    Component *dev;
     if (comp) {
         if (pMsg->message.parameters > 0) {
             dev = &comp->components[(pMsg->message.parameters) - 1];
@@ -141,7 +154,7 @@ static bool _handleMsgTypeCmd(OCMPMessageFrame *pMsg, const Component *comp)
             cmd = &dev->commands[pMsg->message.action];
         }
         if (cmd && cmd->cb_cmd) {
-            cmd->cb_cmd(dev->driver_cfg, pMsg->message.ocmp_data);
+            cmd->cb_cmd(dev->driver_cfg, pMsg);
             return true;
         }
     }
@@ -237,7 +250,7 @@ static bool _handleDevStatCfg(OCMPMessageFrame *pMsg, const Component *dev,
 static bool _handle_post_enable(const Component *comp, OCMPMessageFrame *pMsg)
 {
     bool ret = false;
-    OCMPMessageFrame *buffer = NULL;
+    OCMPMessageFrame *buffer;
     const Post *postCmd = &comp->driver->post[(pMsg->message.action) - 1];
     if (postCmd && postCmd->cb_postCmd) {
         ret = postCmd->cb_postCmd(&buffer);
@@ -262,7 +275,7 @@ static bool _handle_post_get_results(const Component *comp,
     bool ret = false;
     const Post *postCmd = &comp->driver->post[(pMsg->message.action) - 1];
     if (postCmd && postCmd->cb_postCmd) {
-        postCmd->cb_postCmd((void **)pMsg);
+        postCmd->cb_postCmd(pMsg);
         ret = true;
     }
     return ret;
@@ -272,6 +285,8 @@ static bool _handleMsgTypePOST(OCMPMessageFrame *pMsg, const Component *comp,
                                unsigned int subsystem_id)
 {
     /* Determine driver & parameter */
+    unsigned int param_id = 0;
+    uint8_t *buf_ptr = pMsg->message.ocmp_data;
     bool dev_handled = false;
     switch (pMsg->message.action) {
         case OCMP_ACTION_TYPE_SET:
@@ -290,10 +305,10 @@ static bool _handleMsgTypePOST(OCMPMessageFrame *pMsg, const Component *comp,
             }
             break;
             /*        case OCMP_ACTION_REPLY:
-            if (_handle_post_reply(pMsg, *buf_ptr)) {
-                dev_handled = true;
-            }
-            break;*/
+                        if (_handle_post_reply(pMsg, *buf_ptr)) {
+                            dev_handled = true;
+                        }
+                        break;*/
         default:
             break;
     }
@@ -415,9 +430,17 @@ static void subsystem_init(OCMPSubsystem ss_id)
                      ss_id);
     }
 
-    /* Create Message Queue for RX Messages */
+    /* Create Message Queue for TX Messages */
     ss->msgQueue = Util_constructQueue(&ss->queueStruct);
     if (!ss->msgQueue) {
+        LOGGER_ERROR("SS REG:ERROR:: Failed in Constructing Message Queue for "
+                     "TX Message for subsystem %d\n",
+                     ss_id);
+    }
+
+    /* Create Message Queue for RX Messages */
+    ss->msgRxQueue = Util_constructQueue(&ss->queueRxStruct);
+    if (!ss->msgRxQueue) {
         LOGGER_ERROR("SS REG:ERROR:: Failed in Constructing Message Queue for "
                      "RX Message for subsystem %d\n",
                      ss_id);
@@ -459,4 +482,36 @@ bool SSRegistry_sendMessage(OCMPSubsystem ss_id, void *pMsg)
     }
 
     return Util_enqueueMsg(ss->msgQueue, ss->sem, (uint8_t *)pMsg);
+}
+
+bool alert_log(void *driver, void *mSgPtr)
+{
+    OCSubsystem *ss = (OCSubsystem *)malloc(sizeof(OCSubsystem));
+    OCMPMessageFrame *pMsg = mSgPtr;
+    FILESystemStruct fileSysStruct = { "alertLog",          FRAME_SIZE,
+                                       NO_OF_ALERT_FILES,   pMsg,
+                                       MAX_ALERT_FILE_SIZE, READ_FLAG };
+    // (OCMPMessageFrame *)fileSysStruct->pmsg = mSgPtr;
+    /* Swatee fill the params for filestruct */
+    Util_enqueueMsg(fsRxMsgQueue, semFilesysMsg, (uint8_t *)&fileSysStruct);
+    // Semaphore_pend(semFSreadMsg, BIOS_WAIT_FOREVER);
+    /* change for new sem and queue */
+    while (1) {
+        if (Semaphore_pend(ss->sem, BIOS_WAIT_FOREVER)) {
+            while (!Queue_empty(ss->msgRxQueue)) {
+                OCMPMessageFrame *pMsg =
+                    (OCMPMessageFrame *)Util_dequeueMsg(ss->msgRxQueue);
+
+                if (pMsg) {
+                    Util_enqueueMsg(bigBrotherTxMsgQueue, semBigBrotherMsg,
+                                    (uint8_t *)pMsg);
+                }
+            }
+            if (pMsg->message.ocmp_data[NEXT_MSG_FLAG_POS] == LAST_MSG_FLAG) {
+                break;
+            }
+        }
+    }
+
+    return true;
 }

@@ -43,8 +43,6 @@ static ePostCode _probe(void *driver, POSTData *postData)
     return led_probe(driver, postData);
 }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
 static ePostCode _init(void *driver, const void *config,
                        const void *alert_token)
 {
@@ -58,7 +56,6 @@ static ePostCode _init(void *driver, const void *config,
 
     return POST_DEV_CFG_DONE;
 }
-#pragma GCC diagnostic pop
 
 const Driver_fxnTable LED_fxnTable = {
     /* Message handlers */

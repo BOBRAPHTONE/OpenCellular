@@ -1,11 +1,3 @@
-/**
- * Copyright (c) 2017-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
- */
 #include "drivers/PinGroup.h"
 #include "drivers/GpioPCA9557.h"
 #include "fake/fake_I2C.h"
@@ -26,6 +18,10 @@ static uint8_t PCA9557_regs[] = {
     [0x01] = 0x00, /* Output values */
     [0x02] = 0x00, /* Polarity */
     [0x03] = 0x00, /* Dir Config */
+};
+static const I2C_Dev pca9557_dev = {
+    .bus = 2,
+    .slave_addr = 0x24,
 };
 OcGpio_Port fe_ch1_gain_io = {
     .fn_table = &GpioPCA9557_fnTable,

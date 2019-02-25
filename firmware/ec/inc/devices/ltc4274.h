@@ -52,16 +52,16 @@
 #define LTC4274_CLASSIFICATION_COMPLETE(x) (x & 0x10)
 
 typedef enum LTC4274_Event {
-    LTC4274_EVT_SUPPLY = 1 << 7,
-    LTC4274_EVT_TSTART = 1 << 6,
-    LTC4274_EVT_TCUT = 1 << 5,
-    LTC4274_EVT_CLASS = 1 << 4,
-    LTC4274_EVT_DETECTION = 1 << 3,
-    LTC4274_EVT_DISCONNECT = 1 << 2,
-    LTC4274_EVT_POWERGOOD = 1 << 1,
-    LTC4274_EVT_POWER_ENABLE = 1 << 0,
-    LTC4274_EVT_NONE = 0,
-} LTC4274_Event; // From LTC4274 Datasheet, Interrupts table
+    LTC4274_EVT_SUPPLY = 1 << 8,
+    LTC4274_EVT_TSTART = 1 << 7,
+    LTC4274_EVT_TCUT = 1 << 6,
+    LTC4274_EVT_CLASS = 1 << 5,
+    LTC4274_EVT_DETECTION = 1 << 4,
+    LTC4274_EVT_DISCONNECT = 1 << 3,
+    LTC4274_EVT_POWERGOOD = 1 << 2,
+    LTC4274_EVT_POWER_ENABLE = 1 << 1,
+    LTC4274_EVT_NONE = 1 << 0,
+} LTC4274_Event;
 
 typedef enum { LTC4274_POWERGOOD = 0, LTC4274_POWERGOOD_NOTOK } ePSEPowerState;
 
@@ -164,15 +164,10 @@ void ltc4274_enable(LTC4274_Dev *dev, uint8_t enableVal);
 ReturnStatus ltc4274_get_devid(const I2C_Dev *i2c_dev, uint8_t *devID);
 ReturnStatus ltc4274_detect(const I2C_Dev *i2c_dev, uint8_t *detect,
                             uint8_t *val);
-void ltc4274_config(LTC4274_Dev *dev);
 ePostCode ltc4274_probe(const LTC4274_Dev *i2c_dev, POSTData *postData);
 void ltc4274_init(LTC4274_Dev *dev);
-void ltc4274_initPSEStateInfo(void);
+void ltc4274_initPSEStateInfo();
 void ltc4274_update_stateInfo(const I2C_Dev *i2c_dev);
-ReturnStatus ltc4274_reset(LTC4274_Dev *dev);
-ReturnStatus ltc4274_read(const I2C_Dev *i2c_dev, uint8_t regAddress,
-                          uint8_t *regValue);
-ReturnStatus ltc4274_write(const I2C_Dev *i2c_dev, uint8_t regAddress,
-                           uint8_t regValue);
+ReturnStatus ltc4274_reset();
 
 #endif /* LTC4274_H_ */

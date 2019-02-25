@@ -12,19 +12,19 @@
 //*****************************************************************************
 #include "Board.h"
 #include "devices/uart/sbd.h"
-#include "helpers/array.h"
 #include "inc/common/global_header.h"
-#include "inc/devices/sbdn9603.h"
+#include "inc/subsystem/obc/obc.h"
 #include "inc/subsystem/sdr/sdr.h" /* temporary - Only required for 12v enable */
+#include "helpers/array.h"
 #include "platform/oc-sdr/schema/schema.h"
 #include "registry/SSRegistry.h"
-
-#include <stdlib.h>
-#include <string.h>
 
 #include <ti/drivers/UART.h>
 #include <ti/sysbios/BIOS.h>
 #include <ti/sysbios/knl/Clock.h>
+
+#include <stdlib.h>
+#include <string.h>
 
 //*****************************************************************************
 //                             MACROS DEFINITION
@@ -197,11 +197,8 @@ bool sbd9603_get_regStatus(OBC_Iridium_Status_Data *pIridiumStatusData)
     return ret;
 }
 
-#if 0
-#    include "helpers/memory.h"
-/* NOTE: Commented out because unused, triggers -Wunused-function warning.
- *       The function might be useful in the future.
- */
+#include "helpers/memory.h"
+
 static void loopback_test(SBD_Handle hSbd, bool debugLogs)
 {
     static int loopCount = 1;
@@ -255,4 +252,3 @@ static void loopback_test(SBD_Handle hSbd, bool debugLogs)
     /* FIXME: hack to keep thread alive so we keep looping */
     Semaphore_post(ss->sem);
 }
-#endif

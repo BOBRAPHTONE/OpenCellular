@@ -189,18 +189,15 @@ static const hciLedData ledData[HCI_LED_TOTAL_NOS] =
  *****************************************************************************/
 ReturnStatus hci_led_turnon_green(const HciLedCfg *driver)
 {
-    ReturnStatus status = RETURN_NOTOK;
+    ReturnStatus status = RETURN_OK;
 
-    if (!driver) {
-        return status;
-    }
     /* Turn On Left side Green LEDs */
     status = ioexp_led_set_data(&driver->sx1509_dev[HCI_LED_DRIVER_LEFT],
-                                SX1509_REG_AB, LED_GREEN, LED_GREEN);
+                                SX1509_REG_AB, 0x55, 0x55);
     if (status == RETURN_OK) {
         /* Turn On Right side Green LEDs */
         status = ioexp_led_set_data(&driver->sx1509_dev[HCI_LED_DRIVER_RIGHT],
-                                    SX1509_REG_AB, LED_GREEN, 0x55);
+                                    SX1509_REG_AB, 0x55, 0x55);
     }
     return status;
 }
@@ -217,18 +214,15 @@ ReturnStatus hci_led_turnon_green(const HciLedCfg *driver)
  *****************************************************************************/
 ReturnStatus hci_led_turnon_red(const HciLedCfg *driver)
 {
-    ReturnStatus status = RETURN_NOTOK;
+    ReturnStatus status = RETURN_OK;
 
-    if (!driver) {
-        return status;
-    }
     /* Turn On Left side Red LEDs */
     status = ioexp_led_set_data(&driver->sx1509_dev[HCI_LED_DRIVER_LEFT],
-                                SX1509_REG_AB, LED_RED, LED_RED);
+                                SX1509_REG_AB, 0xAA, 0xAA);
     if (status == RETURN_OK) {
         /* Turn On Right side Red LEDs */
         status = ioexp_led_set_data(&driver->sx1509_dev[HCI_LED_DRIVER_RIGHT],
-                                    SX1509_REG_AB, LED_RED, LED_RED);
+                                    SX1509_REG_AB, 0xAA, 0xAA);
     }
     return status;
 }
@@ -245,11 +239,8 @@ ReturnStatus hci_led_turnon_red(const HciLedCfg *driver)
  *****************************************************************************/
 ReturnStatus hci_led_turnoff_all(const HciLedCfg *driver)
 {
-    ReturnStatus status = RETURN_NOTOK;
+    ReturnStatus status = RETURN_OK;
 
-    if (!driver) {
-        return status;
-    }
     /* Turn Off Left side LEDs */
     status = ioexp_led_set_data(&driver->sx1509_dev[HCI_LED_DRIVER_LEFT],
                                 SX1509_REG_AB, LED_OFF, LED_OFF);
@@ -273,12 +264,9 @@ ReturnStatus hci_led_turnoff_all(const HciLedCfg *driver)
  *****************************************************************************/
 static ReturnStatus hci_led_configure_sx1509_onofftime(const I2C_Dev *ioexpDev)
 {
+    ReturnStatus status = RETURN_OK;
     uint8_t index;
-    ReturnStatus status = RETURN_NOTOK;
 
-    if (!ioexpDev) {
-        return status;
-    }
     for (index = 0; index < 14; index++) {
         /* Configure RegTOn time of LEDs */
         status = ioexp_led_set_on_time(ioexpDev, index, REG_T_ON_VALUE);
@@ -294,54 +282,7 @@ static ReturnStatus hci_led_configure_sx1509_onofftime(const I2C_Dev *ioexpDev)
     }
     return status;
 }
-/*****************************************************************************
- **    FUNCTION NAME   : hci_led_configure_onofftime_left
- **
- **    DESCRIPTION     : Configure On and Off time of left LEDs on the LED
- *board.
- **
- **    ARGUMENTS       : None
- **
- **    RETURN TYPE     : Success or Failure
- **
- *****************************************************************************/
-static ReturnStatus hci_led_configure_onofftime_left(const HciLedCfg *driver)
-{
-    ReturnStatus status = RETURN_NOTOK;
 
-    if (!driver) {
-        return status;
-    }
-    /* Configure LED driver parameters(RegTOn, RegOff) for Left side LEDs */
-    status = hci_led_configure_sx1509_onofftime(
-        &driver->sx1509_dev[HCI_LED_DRIVER_LEFT]);
-
-    return status;
-}
-/*****************************************************************************
- **    FUNCTION NAME   : hci_led_configure_onofftime_right
- **
- **    DESCRIPTION     : Configure On and Off time of right LEDs on the LED
- *board.
- **
- **    ARGUMENTS       : None
- **
- **    RETURN TYPE     : Success or Failure
- **
- *****************************************************************************/
-static ReturnStatus hci_led_configure_onofftime_right(const HciLedCfg *driver)
-{
-    ReturnStatus status = RETURN_NOTOK;
-
-    if (!driver) {
-        return status;
-    }
-    /* Configure LED driver parameters(RegTOn, RegOff) for Left side LEDs */
-    status = hci_led_configure_sx1509_onofftime(
-        &driver->sx1509_dev[HCI_LED_DRIVER_RIGHT]);
-
-    return status;
-}
 /*****************************************************************************
  **    FUNCTION NAME   : hci_led_configure_onofftime
  **
@@ -354,17 +295,16 @@ static ReturnStatus hci_led_configure_onofftime_right(const HciLedCfg *driver)
  *****************************************************************************/
 static ReturnStatus hci_led_configure_onofftime(const HciLedCfg *driver)
 {
-    ReturnStatus status = RETURN_NOTOK;
+    ReturnStatus status = RETURN_OK;
 
-    if (!driver) {
-        return status;
-    }
     /* Configure LED driver parameters(RegTOn, RegOff) for Left side LEDs */
-    status = hci_led_configure_onofftime_left(driver);
+    status = hci_led_configure_sx1509_onofftime(
+        &driver->sx1509_dev[HCI_LED_DRIVER_LEFT]);
     if (status == RETURN_OK) {
         /* Configure LED driver parameters(RegTOn, RegOff) for Right side LEDs
          */
-        status = hci_led_configure_onofftime_right(driver);
+        hci_led_configure_sx1509_onofftime(
+            &driver->sx1509_dev[HCI_LED_DRIVER_RIGHT]);
     }
     return status;
 }
@@ -382,13 +322,10 @@ static ReturnStatus hci_led_configure_onofftime(const HciLedCfg *driver)
  *****************************************************************************/
 ReturnStatus hci_led_system_boot(const HciLedCfg *driver)
 {
+    ReturnStatus status = RETURN_OK;
     uint8_t index = 0;
     uint8_t regValue = 0;
-    ReturnStatus status = RETURN_NOTOK;
 
-    if (!driver) {
-        return status;
-    }
     /* Turn off all LEDs */
     status = hci_led_turnoff_all(driver);
     if (status != RETURN_OK) {
@@ -427,11 +364,8 @@ ReturnStatus hci_led_system_boot(const HciLedCfg *driver)
  *****************************************************************************/
 ReturnStatus hci_led_system_running(const HciLedCfg *driver)
 {
-    ReturnStatus status = RETURN_NOTOK;
+    ReturnStatus status = RETURN_OK;
 
-    if (!driver) {
-        return status;
-    }
     /* Turn off all LEDs */
     status = hci_led_turnoff_all(driver);
     if (status != RETURN_OK) {
@@ -463,11 +397,8 @@ ReturnStatus hci_led_system_running(const HciLedCfg *driver)
  *****************************************************************************/
 ReturnStatus hci_led_system_failure(const HciLedCfg *driver)
 {
-    ReturnStatus status = RETURN_NOTOK;
+    ReturnStatus status = RETURN_OK;
 
-    if (!driver) {
-        return status;
-    }
     /* Turn off all LEDs */
     status = hci_led_turnoff_all(driver);
     if (status != RETURN_OK) {
@@ -499,21 +430,14 @@ ReturnStatus hci_led_system_failure(const HciLedCfg *driver)
  *****************************************************************************/
 ReturnStatus hci_led_radio_failure(const HciLedCfg *driver)
 {
-    ReturnStatus status = RETURN_NOTOK;
+    ReturnStatus status = RETURN_OK;
 
-    if (!driver) {
-        return status;
-    }
     /* Turn off all LEDs */
     status = hci_led_turnoff_all(driver);
-    /* Enable blink for the left LEDs */
-    if (status == RETURN_OK) {
-        status = hci_led_configure_onofftime_left(driver);
-    }
     if (status == RETURN_OK) {
         /* Turn On Left side Red LEDs */
-        status = ioexp_led_set_data(&driver->sx1509_dev[HCI_LED_DRIVER_LEFT],
-                                    SX1509_REG_AB, LED_RED, LED_RED);
+        status =
+            ioexp_led_set_data(HCI_LED_DRIVER_LEFT, SX1509_REG_AB, 0xAA, 0xAA);
     }
 
     return status;
@@ -532,21 +456,14 @@ ReturnStatus hci_led_radio_failure(const HciLedCfg *driver)
  *****************************************************************************/
 ReturnStatus hci_led_backhaul_failure(const HciLedCfg *driver)
 {
-    ReturnStatus status = RETURN_NOTOK;
+    ReturnStatus status = RETURN_OK;
 
-    if (!driver) {
-        return status;
-    }
     /* Turn off all LEDs */
     status = hci_led_turnoff_all(driver);
-    /* Enable blink for all Right LEDs */
-    if (status == RETURN_OK) {
-        status = hci_led_configure_onofftime_right(driver);
-    }
     if (status == RETURN_OK) {
         /* Turn On Right side Red LEDs */
         status = ioexp_led_set_data(&driver->sx1509_dev[HCI_LED_DRIVER_RIGHT],
-                                    SX1509_REG_AB, LED_RED, LED_RED);
+                                    SX1509_REG_AB, 0xAA, 0xAA);
     }
     return status;
 }
@@ -564,18 +481,15 @@ ReturnStatus hci_led_backhaul_failure(const HciLedCfg *driver)
  *****************************************************************************/
 ReturnStatus led_init(const HciLedCfg *driver)
 {
+    ReturnStatus status = RETURN_OK;
     uint8_t index;
-    ReturnStatus status = RETURN_NOTOK;
 
-    if (!driver) {
-        return status;
-    }
     /* Steps required to use the LED driver
      - Disable input buffer (RegInputDisable)
      - Disable pull-up (RegPullUp)
      - Enable open drain (RegOpenDrain)
-     - Set direction to output (RegDir) \96 by default RegData is set high =>
-     LED OFF
+     - Set direction to output (RegDir) – by default RegData is set high => LED
+     OFF
      - Enable oscillator (RegClock)
      - Configure LED driver clock and mode if relevant (RegMisc)
      - Enable LED driver operation (RegLEDDriverEnable)
@@ -616,7 +530,7 @@ ReturnStatus led_init(const HciLedCfg *driver)
             return status;
         }
 
-        /* Set direction to output (RegDir)
+        /* Set direction to output (RegDir) –
          * by default RegData is set high => LED OFF */
         status = ioexp_led_config_data_direction(&driver->sx1509_dev[index],
                                                  SX1509_REG_AB, 0x00, 0x00);
@@ -655,9 +569,6 @@ ReturnStatus led_init(const HciLedCfg *driver)
 void led_configure(HciLedCfg *driver)
 {
     /* Initialize IO pins */
-    if (!driver) {
-        return;
-    }
     OcGpio_configure(&driver->pin_ec_gpio,
                      OCGPIO_CFG_OUTPUT | OCGPIO_CFG_OUT_HIGH);
 }
@@ -674,12 +585,9 @@ void led_configure(HciLedCfg *driver)
  *****************************************************************************/
 ePostCode led_probe(const HciLedCfg *driver, POSTData *postData)
 {
-    ReturnStatus status = POST_DEV_MISSING;
+    ReturnStatus status = RETURN_NOTOK;
     uint8_t regValue = 0x00;
 
-    if (!(driver && postData)) {
-        return status;
-    }
     /* Read Test Register 1 of LED driver SX1509 of Left LED Module(RegTest1) */
     status = ioexp_led_read_testregister_1(
         &driver->sx1509_dev[HCI_LED_DRIVER_LEFT], &regValue);
@@ -694,8 +602,8 @@ ePostCode led_probe(const HciLedCfg *driver, POSTData *postData)
     if (status != RETURN_OK) {
         return POST_DEV_MISSING;
     }
-    post_update_POSTData(postData, driver->sx1509_dev[HCI_LED_DRIVER_LEFT].bus,
-                         driver->sx1509_dev[HCI_LED_DRIVER_LEFT].slave_addr,
+    post_update_POSTData(postData, &driver->sx1509_dev[HCI_LED_DRIVER_LEFT].bus,
+                         &driver->sx1509_dev[HCI_LED_DRIVER_LEFT].slave_addr,
                          0xFF, 0xFF);
     return POST_DEV_FOUND;
 }

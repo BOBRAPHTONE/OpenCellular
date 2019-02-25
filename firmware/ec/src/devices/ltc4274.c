@@ -16,7 +16,6 @@
 #include "inc/common/global_header.h"
 #include "inc/common/i2cbus.h"
 #include "inc/subsystem/power/power.h"
-#include "devices/i2c/threaded_int.h"
 
 #include <stdlib.h>
 #include <ti/sysbios/knl/Task.h>
@@ -478,7 +477,7 @@ static void _get_pse_detect_enum(uint8_t val, ePSEDetection *pseDetect)
         } break;
         case LTC4274_RSIG_TOO_HIGH: {
             *pseDetect = LTC4274_RSIG_TOO_HIGH;
-        } break;
+        }
         case LTC4274_OPEN_CIRCUIT: {
             *pseDetect = LTC4274_OPEN_CIRCUIT;
         } break;
@@ -847,12 +846,12 @@ ePostCode ltc4274_probe(const LTC4274_Dev *dev, POSTData *postData)
     if (status != RETURN_OK) {
         postcode = POST_DEV_MISSING;
     } else if (devId == LTC4274_DEV_ID) {
-        post_update_POSTData(postData, dev->cfg.i2c_dev.bus,
-                             dev->cfg.i2c_dev.slave_addr, 0xFF, devId);
         postcode = POST_DEV_FOUND;
     } else {
         postcode = POST_DEV_ID_MISMATCH;
     }
+    post_update_POSTData(postData, dev->cfg.i2c_dev.bus,
+                         dev->cfg.i2c_dev.slave_addr, 0xFF, devId);
     return postcode;
 }
 
@@ -965,7 +964,7 @@ void ltc4274_init(LTC4274_Dev *dev)
  **    RETURN TYPE     : ReturnStatus
  **
  *****************************************************************************/
-void ltc4274_initPSEStateInfo(void)
+void ltc4274_initPSEStateInfo()
 {
     PSEStatus_Info.pseStatus.detectStatus = LTC4274_DETECT_UNKOWN;
     PSEStatus_Info.pseStatus.classStatus = LTC4274_CLASSTYPE_UNKOWN;

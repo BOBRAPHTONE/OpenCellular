@@ -19,6 +19,30 @@
 
 #include <stdlib.h>
 #include <string.h>
+
+static FE_Band_Cfg FE_BandCfg[RFFE_MAX_CHANNEL];
+
+typedef enum FE_ParamCfg {
+    FE_CFG_BAND = 0,
+} FE_ParamCfg;
+
+/*****************************************************************************
+ *                           GPIO CONFIGURATION
+ *****************************************************************************/
+extern void *fe_rffecfg;
+#define RF ((Fe_Cfg *)fe_rffecfg)
+
+void _rffe_watchdog_handler(void *context)
+{
+    RfWatchdog_Cfg *cfg = context;
+    if (OcGpio_read(cfg->pin_alert_lb) > 0) {
+        OCMP_GenerateAlert(context, 0, NULL, NULL, OCMP_AXN_TYPE_ACTIVE);
+    }
+    if (OcGpio_read(cfg->pin_alert_hb) > 0) {
+        OCMP_GenerateAlert(context, 1, NULL, NULL, OCMP_AXN_TYPE_ACTIVE);
+    }
+}
+
 /*****************************************************************************
  **    FUNCTION NAME   : rffe_ctrl_configure_power_amplifier
  **

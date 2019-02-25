@@ -1,11 +1,3 @@
-/**
- * Copyright (c) 2017-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
- */
 #include "unity.h"
 #include "inc/devices/ltc4274.h"
 #include "common/inc/ocmp_wrappers/ocmp_ltc4274.h"
@@ -25,17 +17,17 @@ static OcGpio_Port s_fake_io_port = {
     .object_data = &(FakeGpio_Obj){},
 };
 
-static I2C_Dev I2C_DEV = {
+static const I2C_Dev I2C_DEV = {
     .bus = 7,
     .slave_addr = 0x2F,
 };
 
-static I2C_Dev I2C_INVALID_DEV = {
+static const I2C_Dev I2C_INVALID_DEV = {
     .bus = 7,
     .slave_addr = 0x52,
 };
 
-static I2C_Dev I2C_INVALID_BUS = {
+static const I2C_Dev I2C_INVALID_BUS = {
     .bus = 3,
     .slave_addr = 0x2F,
 };
@@ -175,18 +167,13 @@ void suite_tearDown(void)
 }
 
 /* ================================ Tests =================================== */
-// Parameters are not used as this is just used to test assigning the
-//   alert_handler right now.
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
 void OCMP_GenerateAlert(const AlertData *alert_data, unsigned int alert_id,
                         const void *data)
 {
     return;
 }
-#pragma GCC diagnostic pop
 
-void test_probe(void)
+void test_probe()
 {
     POSTData postData;
 
@@ -209,7 +196,7 @@ void test_probe(void)
                       LTC4274_fxnTable.cb_probe(&s_dev, &postData));
 }
 
-void test_get_status(void)
+void test_get_status()
 {
     uint8_t value = 0xFF;
 
@@ -260,7 +247,7 @@ void test_get_status(void)
                           &I2C_INVALID_BUS, LTC7274_STATUS_POWERGOOD, &value));
 }
 
-void test_set_config(void)
+void test_set_config()
 {
     uint8_t value = 0x00;
 
@@ -337,7 +324,7 @@ void test_set_config(void)
                           &I2C_INVALID_BUS, LTC4274_CONFIG_HP_ENABLE, &value));
 }
 
-void test_get_config(void)
+void test_get_config()
 {
     uint8_t value = 0x00;
 
@@ -408,10 +395,8 @@ void test_get_config(void)
                           &I2C_INVALID_BUS, LTC4274_CONFIG_HP_ENABLE, &value));
 }
 
-void test_init(void)
+void test_init()
 {
-    const int alert_token;
-
     const LTC4274_Config fact_ltc4274_cfg = {
         .operatingMode = LTC4274_AUTO_MODE,
         .detectEnable = LTC4274_DETECT_ENABLE,
@@ -420,9 +405,8 @@ void test_init(void)
         .pseHpEnable = LTC4274_HP_ENABLE,
     };
 
-    TEST_ASSERT_EQUAL(
-        POST_DEV_CFG_DONE,
-        LTC4274_fxnTable.cb_init(&s_dev, &fact_ltc4274_cfg, &alert_token));
+    TEST_ASSERT_EQUAL(POST_DEV_CFG_DONE,
+                      LTC4274_fxnTable.cb_init(&s_dev, &fact_ltc4274_cfg, 1));
 
     TEST_ASSERT_EQUAL_HEX8(LTC4274_regs[0x12], LTC4274_AUTO_MODE);
     TEST_ASSERT_EQUAL_HEX8(LTC4274_regs[0x14], LTC4274_DETECT_ENABLE);
@@ -432,9 +416,9 @@ void test_init(void)
     TEST_ASSERT_EQUAL(OCGPIO_CFG_INPUT | OCGPIO_CFG_INT_FALLING,
                       LTC7274_GpioConfig[27]);
 
-    TEST_ASSERT_EQUAL(POST_DEV_CFG_FAIL,
-                      LTC4274_fxnTable.cb_init(
-                          &s_invalid_dev, &fact_ltc4274_cfg, &alert_token));
+    TEST_ASSERT_EQUAL(
+        POST_DEV_CFG_FAIL,
+        LTC4274_fxnTable.cb_init(&s_invalid_dev, &fact_ltc4274_cfg, 1));
     TEST_ASSERT_EQUAL(POST_DEV_CFG_DONE,
-                      LTC4274_fxnTable.cb_init(&s_dev, NULL, &alert_token));
+                      LTC4274_fxnTable.cb_init(&s_dev, NULL, 1));
 }

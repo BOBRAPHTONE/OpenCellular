@@ -30,14 +30,12 @@
     0x04 /* Output buffer low drive register I/O[15..8] (Bank B) */
 #define SX1509_REG_LOW_DRIVE_A \
     0x05 /* Output buffer low drive register I/O[7..0] (Bank A) */
-#define SX1509_REG_PULL_UP_B 0x06 /* Pull_up register I/O[15..8] (Bank B) */
-#define SX1509_REG_PULL_UP_A 0x07 /* Pull_up register I/O[7..0] (Bank A) */
-#define SX1509_REG_PULL_DOWN_B                     \
-    0x08 /* Pull_down register I/O[15..8] (Bank B) \
-          */
-#define SX1509_REG_PULL_DOWN_A                    \
-    0x09 /* Pull_down register I/O[7..0] (Bank A) \
-          */
+#define SX1509_REG_PULL_UP_B 0x06   /* Pull_up register I/O[15..8] (Bank B) */
+#define SX1509_REG_PULL_UP_A 0x07   /* Pull_up register I/O[7..0] (Bank A) */
+#define SX1509_REG_PULL_DOWN_B 0x08 /* Pull_down register I/O[15..8] (Bank B) \
+                                     */
+#define SX1509_REG_PULL_DOWN_A 0x09 /* Pull_down register I/O[7..0] (Bank A) \
+                                     */
 #define SX1509_REG_OPEN_DRAIN_B \
     0x0A /* Open drain register I/O[15..8] (Bank B) */
 #define SX1509_REG_OPEN_DRAIN_A \
@@ -53,14 +51,12 @@
 #define SX1509_REG_INTERRUPT_MASK_A \
     0x13 /* Interrupt mask register I/O[7..0] (Bank A) */
 #define SX1509_REG_SENSE_HIGH_B \
-    0x14 /* Sense register for I/O[15:12] (Bank B) */
-#define SX1509_REG_SENSE_LOW_B                    \
-    0x15 /* Sense register for I/O[11:8] (Bank B) \
-          */
-#define SX1509_REG_SENSE_HIGH_A                                             \
-    0x16                            /* Sense register for I/O[7:4] (Bank A) \
+    0x14                            /* Sense register for I/O[15:12] (Bank B) */
+#define SX1509_REG_SENSE_LOW_B 0x15 /* Sense register for I/O[11:8] (Bank B) \
                                      */
-#define SX1509_REG_SENSE_LOW_A 0x17 /* Sense register for I/O[3:0] (Bank A) */
+#define SX1509_REG_SENSE_HIGH_A 0x16 /* Sense register for I/O[7:4] (Bank A) \
+                                      */
+#define SX1509_REG_SENSE_LOW_A 0x17  /* Sense register for I/O[3:0] (Bank A) */
 #define SX1509_REG_INTERRUPT_SOURCE_B \
     0x18 /* Interrupt source register I/O[15..8] (Bank B) */
 #define SX1509_REG_INTERRUPT_SOURCE_A \

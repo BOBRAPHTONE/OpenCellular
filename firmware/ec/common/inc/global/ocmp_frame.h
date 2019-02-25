@@ -30,7 +30,7 @@
 
 typedef enum {
     OC_SS_BB = -1, // Hack around the fact that IPC reuses OCMP to allow us
-    //  to split BB (internal) and SYS (CLI) message handling
+                   //  to split BB (internal) and SYS (CLI) message handling
     OC_SS_SYS = 0,
     OC_SS_PWR,
     OC_SS_BMS,

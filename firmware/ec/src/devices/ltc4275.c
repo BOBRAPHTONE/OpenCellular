@@ -71,12 +71,8 @@ static void ltc4275_handle_irq(void *context)
  */
 void ltc4275_config(const LTC4275_Dev *dev)
 {
-    if (dev == NULL) {
-        LOGGER("LTC4275::ERROR: Configuration is NULL.\n");
-    } else {
-        OcGpio_configure(dev->cfg.pin_evt, OCGPIO_CFG_INPUT);
-        OcGpio_configure(dev->cfg.pin_detect, OCGPIO_CFG_INPUT);
-    }
+    OcGpio_configure(dev->cfg.pin_evt, OCGPIO_CFG_INPUT);
+    OcGpio_configure(dev->cfg.pin_detect, OCGPIO_CFG_INPUT);
 }
 
 /******************************************************************************
@@ -92,10 +88,6 @@ ePostCode ltc4275_probe(const LTC4275_Dev *dev, POSTData *postData)
 {
     ePostCode postCode = POST_DEV_MISSING;
     ePDPowerState pdStatus = LTC4275_POWERGOOD_NOTOK;
-    if (dev == NULL) {
-        LOGGER("LTC4275::ERROR: Configuration is NULL.\n");
-        return postCode;
-    }
     ReturnStatus ret = ltc4275_get_power_good(dev, &pdStatus);
     if (ret != RETURN_OK) {
         LOGGER("LTC4275::ERROR: Power good signal read failed.\n");
@@ -128,17 +120,12 @@ ePostCode ltc4275_probe(const LTC4275_Dev *dev, POSTData *postData)
  */
 ReturnStatus ltc4275_init(LTC4275_Dev *dev)
 {
-    ReturnStatus ret = RETURN_NOTOK;
-
-    if (dev == NULL) {
-        LOGGER("LTC4275::ERROR: Configuration is NULL.\n");
-        return ret;
-    }
+    ReturnStatus ret = RETURN_OK;
     dev->obj = (LTC4275_Obj){};
 
     dev->obj.mutex = GateMutex_create(NULL, NULL);
     if (!dev->obj.mutex) {
-        return ret;
+        return RETURN_NOTOK;
     }
 
     ret = ltc4275_get_power_good(dev, &PDStatus_Info.pdStatus.powerGoodStatus);
@@ -161,7 +148,7 @@ ReturnStatus ltc4275_init(LTC4275_Dev *dev)
         const uint32_t pin_evt_cfg =
             OCGPIO_CFG_INPUT | OCGPIO_CFG_INT_BOTH_EDGES;
         if (OcGpio_configure(dev->cfg.pin_evt, pin_evt_cfg) < OCGPIO_SUCCESS) {
-            return ret;
+            return RETURN_NOTOK;
         }
 
         /* Use a threaded interrupt to handle IRQ */
@@ -182,10 +169,6 @@ ReturnStatus ltc4275_init(LTC4275_Dev *dev)
 void ltc4275_set_alert_handler(LTC4275_Dev *dev, LTC4275_CallbackFn alert_cb,
                                void *cb_context)
 {
-    if (dev == NULL) {
-        LOGGER("LTC4275::ERROR: Configuration is NULL.\n");
-        return;
-    }
     dev->obj.alert_cb = alert_cb;
     dev->obj.cb_context = cb_context;
 }
@@ -204,11 +187,6 @@ ReturnStatus ltc4275_get_power_good(const LTC4275_Dev *dev, ePDPowerState *val)
     ReturnStatus ret = RETURN_OK;
     /*set default to 1*/
     *val = LTC4275_POWERGOOD_NOTOK;
-
-    if (dev == NULL) {
-        LOGGER("LTC4275::ERROR: Configuration is NULL.\n");
-        return RETURN_NOTOK;
-    }
 
     /* Check Power Good */
     *val = (ePDPowerState)OcGpio_read(dev->cfg.pin_evt);
@@ -236,10 +214,6 @@ ReturnStatus ltc4275_get_class(const LTC4275_Dev *dev, ePDClassType *val)
     uint8_t prev_value = 1;
     uint8_t toggle = 0;
 
-    if (dev == NULL) {
-        LOGGER("LTC4275::ERROR: Configuration is NULL.\n");
-        return RETURN_NOTOK;
-    }
     for (i = 0; i < 15; i++) {
         value = OcGpio_read(dev->cfg.pin_detect);
         LOGGER_DEBUG("LTC4275:INFO:: PD-nT2P activity status %d.\n", value);
@@ -274,10 +248,6 @@ ReturnStatus ltc4275_get_class(const LTC4275_Dev *dev, ePDClassType *val)
 void ltc4275_update_status(const LTC4275_Dev *dev)
 {
     ReturnStatus ret = RETURN_NOTOK;
-    if (dev == NULL) {
-        LOGGER("LTC4275::ERROR: Power good configuration is NULL.\n");
-        return;
-    }
     ret = ltc4275_get_power_good(dev, &PDStatus_Info.pdStatus.powerGoodStatus);
     if (ret != RETURN_OK) {
         LOGGER("LTC4275::ERROR: Power good signal read failed.\n");
@@ -296,6 +266,6 @@ void ltc4275_update_status(const LTC4275_Dev *dev)
     } else {
         PDStatus_Info.state = LTC4275_STATE_NOTOK;
         PDStatus_Info.pdalert = LTC4275_DISCONNECT_ALERT;
-        PDStatus_Info.pdStatus.classStatus = LTC4275_CLASSTYPE_UNKOWN;
+        PDStatus_Info.pdStatus.classStatus == LTC4275_CLASSTYPE_UNKOWN;
     }
 }

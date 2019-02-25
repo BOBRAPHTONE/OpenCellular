@@ -41,8 +41,7 @@ typedef enum {
     RFFE_HB_F_POWER = 0,
     RFFE_HB_R_POWER,
     RFFE_LB_F_POWER,
-    RFFE_LB_R_POWER,
-    RFFE_INVALID_POWER
+    RFFE_LB_R_POWER
 } eRffePowerDetect;
 
 /*

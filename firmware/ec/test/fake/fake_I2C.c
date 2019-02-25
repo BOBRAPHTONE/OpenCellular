@@ -1,11 +1,3 @@
-/**
- * Copyright (c) 2017-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
- */
 #include "fake_I2C.h"
 #include <ti/drivers/I2C.h>
 
@@ -180,7 +172,6 @@ bool I2C_transfer(I2C_Handle handle, I2C_Transaction *transaction)
         return false;
     }
     const Fake_I2C_Dev *dev = &dev_tbl[transaction->slaveAddress];
-    transaction->readCount = dev->addr_size * transaction->readCount;
 
     /* The write buffer must have at least the address in it */
     if (transaction->writeCount < dev->addr_size) {
@@ -209,8 +200,6 @@ bool I2C_transfer(I2C_Handle handle, I2C_Transaction *transaction)
      * in chunks in the event that we have 16-bit (or larger) registers with
      * a different endianness than the host */
     if (write_count > 0) {
-        write_count =
-            ((dev->addr_size) * (transaction->writeCount)) - dev->addr_size;
         size_t write_size = MIN(write_count, dev->tbl_size - reg_addr);
         for (size_t i = 0; i < write_size / dev->reg_size; i += dev->reg_size) {
             endian_conversion(write_buf + i, dev->reg_size, dev->endianness,

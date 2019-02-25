@@ -10,10 +10,10 @@
 //                                HEADER FILES
 //*****************************************************************************
 #include "inc/subsystem/sdr/sdr.h"
-
+#include "inc/utils/util.h"
 #include "Board.h"
 #include "registry/SSRegistry.h"
-
+#include "src/filesystem/fs_wrapper.h"
 #include <driverlib/sysctl.h>
 
 #include <stdlib.h>
@@ -36,7 +36,7 @@
  **    RETURN TYPE     : ReturnStatus
  **
  *****************************************************************************/
-void sdr_pwr_control(const Sdr_gpioCfg *sdr_gpioCfg, uint8_t control)
+void sdr_pwr_control(Sdr_gpioCfg *sdr_gpioCfg, uint8_t control)
 {
     /* Using configure instead of 'write' here since this pin is shared with
      * OBC and we don't want to configure then write if OBC has already
@@ -211,3 +211,12 @@ bool SDR_reset(void *driver, void *params)
     }
     return true;
 }
+#if 0
+bool sdr_log(void *driver, void *mSgPtr) {
+    OCMPMessageFrame *pMsg = mSgPtr;
+    Util_enqueueMsg(fsRxMsgQueue, semFilesysMsg,
+                    (uint8_t*) pMsg);
+    Semaphore_pend(semFSreadMsg, BIOS_WAIT_FOREVER);
+    return true;
+}
+#endif

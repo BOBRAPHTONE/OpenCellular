@@ -38,16 +38,12 @@ typedef enum LTC7274Alert {
     LTC4274_ALERT_SUPPLY
 } LTC7274Alert;
 
-// *params not needed by reset but kept in definition to match CB_Command type.
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
 bool LTC4274_reset(void *driver, void *params)
 {
     ReturnStatus status = RETURN_OK;
-    status = ltc4274_reset(driver);
+    status = ltc4274_reset();
     return status;
 }
-#pragma GCC diagnostic pop
 
 static bool _get_status(void *driver, unsigned int param_id, void *return_buf)
 {
@@ -226,7 +222,7 @@ static void _alert_handler(LTC4274_Event evt, void *context)
         }
     }
     uint8_t alert_data = 0x00;
-    OCMP_GenerateAlert(context, alert, &alert_data);
+    OCMP_GenerateAlert(context, alert, &alert_data, NULL, OCMP_AXN_TYPE_ACTIVE);
     LOGGER_DEBUG("LTC7274 Event: %d \n", evt);
 }
 

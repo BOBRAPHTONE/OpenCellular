@@ -100,10 +100,8 @@ typedef enum {
 /*****************************************************************************
  *                          FUNCTION DECLARATIONS
  *****************************************************************************/
-
 ReturnStatus adt7481_get_dev_id(const I2C_Dev *i2c_dev, uint8_t *devID);
 ReturnStatus adt7481_get_mfg_id(const I2C_Dev *i2c_dev, uint8_t *mfgID);
-ePostCode adt7481_probe(const I2C_Dev *i2c_dev, POSTData *postData);
 ReturnStatus adt7481_get_config1(const I2C_Dev *i2c_dev, uint8_t *configValue);
 ReturnStatus adt7481_set_config1(const I2C_Dev *i2c_dev, uint8_t configValue);
 ReturnStatus adt7481_get_conv_rate(const I2C_Dev *i2c_dev,
@@ -167,17 +165,5 @@ ReturnStatus adt7481_get_therm_hysteresis(const I2C_Dev *i2c_dev,
                                           int8_t *tempHysteresisValue);
 ReturnStatus adt7481_set_therm_hysteresis(const I2C_Dev *i2c_dev,
                                           int8_t tempHysteresisValue);
-ReturnStatus adt7481_set_remote1_temp_therm_limit(const I2C_Dev *i2c_dev,
-                                                  int8_t tempLimitValue);
-ReturnStatus adt7481_set_remote1_temp_high_limit(const I2C_Dev *i2c_dev,
-                                                 int8_t tempLimitValue);
-ReturnStatus adt7481_set_remote1_temp_low_limit(const I2C_Dev *i2c_dev,
-                                                int8_t tempLimitValue);
-ReturnStatus adt7481_get_remote1_temp_therm_limit(const I2C_Dev *i2c_dev,
-                                                  int8_t *tempLimitValue);
-ReturnStatus adt7481_get_remote1_temp_high_limit(const I2C_Dev *i2c_dev,
-                                                 int8_t *tempLimitValue);
-ReturnStatus adt7481_get_remote1_temp_low_limit(const I2C_Dev *i2c_dev,
-                                                int8_t *tempLimitValue);
 
 #endif /* ADT7481_H_ */

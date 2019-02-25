@@ -11,13 +11,11 @@
 //                                HEADER FILES
 //*****************************************************************************
 #include "inc/subsystem/sync/sync.h"
-
 #include "inc/utils/util.h"
 #include "registry/SSRegistry.h"
-
-#include <ti/sysbios/BIOS.h>
-
 #include <stdlib.h>
+#include "src/filesystem/fs_wrapper.h"
+#include <ti/sysbios/BIOS.h>
 
 //*****************************************************************************
 //                             HANDLES DEFINITION
@@ -196,3 +194,12 @@ bool SYNC_Init(void *driver, void *return_buf)
     SYNC_GpsTaskInit();
     return true;
 }
+#if 0
+bool sync_log(void *driver, void *mSgPtr) {
+    OCMPMessageFrame *pMsg = mSgPtr;
+    Util_enqueueMsg(fsRxMsgQueue, semFilesysMsg,
+                    (uint8_t*) pMsg);
+    Semaphore_pend(semFSreadMsg, BIOS_WAIT_FOREVER);
+    return true;
+}
+#endif

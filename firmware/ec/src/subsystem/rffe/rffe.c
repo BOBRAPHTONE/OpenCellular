@@ -9,9 +9,8 @@
 //*****************************************************************************
 //                                HEADER FILES
 //*****************************************************************************
-#include "inc/subsystem/rffe/rffe.h"
-
 #include "Board.h"
+#include "inc/subsystem/rffe/rffe.h"
 #include "inc/common/system_states.h"
 #include "inc/subsystem/rffe/rffe_sensor.h"
 #include "inc/subsystem/rffe/rffe_ctrl.h"
@@ -19,9 +18,9 @@
 #include "inc/subsystem/sdr/sdr.h"
 #include "inc/utils/util.h"
 #include "registry/SSRegistry.h"
-
 #include <stdlib.h>
 #include <string.h>
+#include "src/filesystem/fs_wrapper.h"
 
 //*****************************************************************************
 //                             HANDLES DEFINITION
@@ -145,3 +144,12 @@ bool RFFE_reset(void *driver, void *params)
     }
     return true;
 }
+#if 0
+bool rffe_log(void *driver, void *mSgPtr) {
+    OCMPMessageFrame *pMsg = mSgPtr;
+    Util_enqueueMsg(fsRxMsgQueue, semFilesysMsg,
+                    (uint8_t*) pMsg);
+    Semaphore_pend(semFSreadMsg, BIOS_WAIT_FOREVER);
+    return true;
+}
+#endif

@@ -96,9 +96,7 @@ static bool _set_config(void *driver, unsigned int param_id, const void *data)
     }
 }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-static ePostCode _probe(void *driver, POSTData *postData)
+static ePostCode _probe(void *driver)
 {
     /* TODO: perhaps GPIO should provide probe/test function? for now we'll
      * assume that reading from the pin will tell us if the pin is working */
@@ -132,7 +130,6 @@ static ePostCode _init(void *driver, const void *config,
     _set_attenuation(driver, cfg_atten->attenuation);
     return POST_DEV_CFG_DONE;
 }
-#pragma GCC diagnostic pop
 
 const Driver_fxnTable DATXXR5APP_fxnTable = {
     /* Message handlers */

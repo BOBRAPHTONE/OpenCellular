@@ -5,10 +5,6 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree. An additional grant
  * of patent rights can be found in the PATENTS file in the same directory.
- *
- * This file contains SPI driver's API within spi_get_handle, spi_reg_read and
- * spi_reg_write which ccan be called by device layer to communicate any SPI
- * device.
  */
 
 //*****************************************************************************
@@ -19,13 +15,13 @@
 #include "drivers/OcGpio.h"
 #include "inc/common/spibus.h"
 #include "inc/global/OC_CONNECT1.h"
+#include <ti/sysbios/BIOS.h>
+#include <ti/sysbios/knl/Semaphore.h>
+#include <ti/sysbios/knl/Queue.h>
+#include <ti/sysbios/gates/GateMutex.h>
+#include <ti/sysbios/knl/Task.h>
 #include <ti/drivers/GPIO.h>
 #include <ti/drivers/SPI.h>
-#include <ti/sysbios/BIOS.h>
-#include <ti/sysbios/gates/GateMutex.h>
-#include <ti/sysbios/knl/Queue.h>
-#include <ti/sysbios/knl/Semaphore.h>
-#include <ti/sysbios/knl/Task.h>
 #include <xdc/std.h>
 #include <xdc/cfg/global.h>
 #include <xdc/runtime/System.h>
@@ -63,9 +59,10 @@ SPI_Handle spi_get_handle(uint32_t index)
  **
  **    DESCRIPTION     : Writing device register over SPI bus.
  **
- **    ARGUMENTS       : SPI handle, chip select, register address, data, data
+ **    ARGUMENTS       : SPI handle, chip select, register address, data,
  **
- **                      length, offset byte, numOfBytes for cmd write count
+ **                      data length, offset byte, numberOfBytes for command
+ *write count
  **
  **    RETURN TYPE     : Success or failure
  **
@@ -113,17 +110,17 @@ ReturnStatus spi_reg_read(SPI_Handle spiHandle, OcGpio_Pin *chip_select,
  **
  **    DESCRIPTION     : Writing device register over SPI bus.
  **
- **    ARGUMENTS       : SPI handle, chip select, register address, data, data
+ **    ARGUMENTS       : SPI handle, chip select, register address, data,
  **
- **                      length, offset byte, numOfBytes for cmd write count
+ **                      data length, offset byte, numberOfBytes for command
+ *write count
  **
  **    RETURN TYPE     : Success or failure
  **
  *****************************************************************************/
 ReturnStatus spi_reg_write(SPI_Handle spiHandle, OcGpio_Pin *chip_select,
-                           void *regAddress, const uint8_t *data,
-                           uint32_t data_size, uint32_t byte,
-                           uint8_t numofBytes)
+                           void *regAddress, uint8_t *data, uint32_t data_size,
+                           uint32_t byte, uint8_t numofBytes)
 {
     ReturnStatus status = RETURN_OK;
     SPI_Transaction spiTransaction;
@@ -143,11 +140,7 @@ ReturnStatus spi_reg_write(SPI_Handle spiHandle, OcGpio_Pin *chip_select,
     }
 
     spiTransaction.count = data_size;
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
-    /* NOTE: const is discarded by SPI_transfer in TI RTOS. */
     spiTransaction.txBuf = data;
-#pragma GCC diagnostic pop
     spiTransaction.rxBuf = NULL;
 
     if (data_size > 0) {

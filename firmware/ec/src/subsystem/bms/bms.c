@@ -10,3 +10,14 @@
 //                                HEADER FILES
 //*****************************************************************************
 #include "inc/subsystem/bms/bms.h"
+#include "inc/utils/util.h"
+#include "src/filesystem/fs_wrapper.h"
+#if 0
+bool bms_log(void *driver, void *mSgPtr) {
+    OCMPMessageFrame *pMsg = mSgPtr;
+    Util_enqueueMsg(fsRxMsgQueue, semFilesysMsg,
+                    (uint8_t*) pMsg);
+    Semaphore_pend(semFSreadMsg, BIOS_WAIT_FOREVER);
+    return true;
+}
+#endif

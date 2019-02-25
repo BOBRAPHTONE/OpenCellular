@@ -7,7 +7,6 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 #include "i2c.h"
-#include <string.h>
 
 typedef struct I2C_Message {
     uint8_t subAddr;

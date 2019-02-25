@@ -11,6 +11,10 @@
 #include "common/inc/global/Framework.h"
 #include "inc/devices/eth_sw.h"
 
+#define MACLOOPBACK 0
+#define LINELOOPBACK 1
+#define EXTLOOPBACK 2
+
 bool ETHERNET_reset(void *driver, void *params)
 {
     ReturnStatus status = RETURN_OK;
@@ -21,35 +25,36 @@ bool ETHERNET_reset(void *driver, void *params)
 bool ETHERNET_enLoopBk(void *driver, void *params)
 {
     ReturnStatus status = RETURN_OK;
-    status = eth_sw_enable_loopback(driver, params);
+    Eth_cfg *s_eth_cfg = (Eth_cfg *)driver;
+    Eth_LoopBack_Params *s_eth_lpback = (Eth_LoopBack_Params *)params;
+    switch (s_eth_lpback->loopBackType) {
+        case MACLOOPBACK:
+            status = eth_sw_enable_macloopback(s_eth_cfg->eth_sw_port);
+            break;
+        /*TODO: Implementation to be done for Line and External Loopback*/
+        case LINELOOPBACK:
+        case EXTLOOPBACK:
+        default:
+            break;
+    }
     return status;
 }
 
 bool ETHERNET_disLoopBk(void *driver, void *params)
 {
     ReturnStatus status = RETURN_OK;
-    status = eth_sw_disable_loopback(driver, params);
-    return status;
-}
-
-bool ETHERNET_enPktGen(void *driver, void *params)
-{
-    ReturnStatus status = RETURN_OK;
-    status = eth_sw_enable_packet_gen(driver, params);
-    return status;
-}
-
-bool ETHERNET_disPktGen(void *driver, void *params)
-{
-    ReturnStatus status = RETURN_OK;
-    status = eth_sw_disable_packet_gen(driver);
-    return status;
-}
-
-bool ETHERNET_tivaClient(void *driver, void *params)
-{
-    ReturnStatus status = RETURN_OK;
-    status = eth_sw_config_tiva_client(driver, params);
+    Eth_cfg *s_eth_cfg = (Eth_cfg *)driver;
+    Eth_LoopBack_Params *s_eth_lpback = (Eth_LoopBack_Params *)params;
+    switch (s_eth_lpback->loopBackType) {
+        case MACLOOPBACK:
+            status = eth_sw_disable_macloopback(s_eth_cfg->eth_sw_port);
+            break;
+        /*TODO: Implementation to be done for Line and External Loopback*/
+        case LINELOOPBACK:
+        case EXTLOOPBACK:
+        default:
+            break;
+    }
     return status;
 }
 
@@ -187,10 +192,6 @@ static ePostCode _probe(void *driver, POSTData *postData)
     return eth_sw_probe(postData);
 }
 
-#if 0
-/* NOTE: Commented out because unused, triggers -Wunused-function warning.
- *       The function might be useful in the future.
- */
 static void _alert_handler(Eth_Sw_Events evt, int16_t value, void *alert_data)
 {
     unsigned int alert;
@@ -222,10 +223,9 @@ static void _alert_handler(Eth_Sw_Events evt, int16_t value, void *alert_data)
             return;
     }
 
-    OCMP_GenerateAlert(alert_data, alert, &value);
+    OCMP_GenerateAlert(alert_data, alert, &value, NULL, OCMP_AXN_TYPE_ACTIVE);
     LOGGER_DEBUG("ETH_SW:: Event: %d Value: %d\n", evt, value);
 }
-#endif
 
 static ePostCode _init(void *driver, const void *config,
                        const void *alert_token)

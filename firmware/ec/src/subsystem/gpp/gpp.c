@@ -26,6 +26,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "src/filesystem/fs_wrapper.h"
+
 //*****************************************************************************
 //                             HANDLES DEFINITION
 //*****************************************************************************
@@ -62,7 +64,7 @@ bool gpp_pmic_control(Gpp_gpioCfg *driver, uint8_t control)
          * Embedded Controller(EC) by toggling two GPIO's.ebmp_init is a
          * function where we register the required GPIO's for interrupts if AP
          * move from one boot process state to other.*/
-        ebmp_init(driver);
+        // ebmp_init(driver);
         SysCtlDelay(100);
         OcGpio_write(&driver->pin_ap_12v_onoff, true);
         SysCtlDelay(100);
@@ -171,3 +173,12 @@ bool GPP_ap_Reset(void *driver, void *params)
 {
     return (gpp_ap_reset(driver) == RETURN_OK);
 }
+#if 0
+bool gpp_log(void *driver, void *mSgPtr) {
+    OCMPMessageFrame *pMsg = mSgPtr;
+    Util_enqueueMsg(fsRxMsgQueue, semFilesysMsg,
+                    (uint8_t*) pMsg);
+    Semaphore_pend(semFSreadMsg, BIOS_WAIT_FOREVER);
+    return true;
+}
+#endif

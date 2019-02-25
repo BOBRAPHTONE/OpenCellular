@@ -1,11 +1,3 @@
-/**
- * Copyright (c) 2017-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
- */
 #include "unity.h"
 #include "inc/devices/adt7481.h"
 #include "common/inc/ocmp_wrappers/ocmp_adt7481.h"
@@ -20,17 +12,22 @@
 
 extern const Component sys_schema[];
 
-static I2C_Dev I2C_DEV = {
+static OcGpio_Port s_fake_io_port = {
+    .fn_table = &FakeGpio_fnTable,
+    .object_data = &(FakeGpio_Obj){},
+};
+
+static const I2C_Dev I2C_DEV = {
     .bus = 7,
     .slave_addr = 0x2F,
 };
 
-static I2C_Dev s_invalid_dev = {
+static const I2C_Dev s_invalid_dev = {
     .bus = 7,
     .slave_addr = 0x52,
 };
 
-static I2C_Dev s_invalid_bus = {
+static const I2C_Dev s_invalid_bus = {
     .bus = 3,
     .slave_addr = 0x2F,
 };
@@ -70,24 +67,40 @@ static uint8_t ADT7481_regs[] = {
     [0x0F] = 0x00, /* One-Shot W*/
     [0x10] = 0x00, /* Remote 1 Temperature Value Low Byte R*/
     [0x11] = 0x00, /* Remote 1 Temperature Offset High Byte R*/
+    [0x11] = 0x00, /* Remote 1 Temperature Offset High Byte W*/
     [0x12] = 0x00, /* Remote 1 Temperature Offset Low Byte R*/
+    [0x12] = 0x00, /* Remote 1 Temperature Offset Low Byte W*/
     [0x13] = 0x00, /* Remote 1 Temp High Limit Low Byte R*/
+    [0x13] = 0x00, /* Remote 1 Temp High Limit Low Byte W*/
     [0x14] = 0x00, /* Remote 1 Temp Low Limit Low Byte R*/
+    [0x14] = 0x00, /* Remote 1 Temp Low Limit Low Byte W*/
     [0x19] = 0x00, /* Remote 1 THERM Limit R */
+    [0x19] = 0x00, /* Remote 1 THERM Limit W */
     [0x20] = 0x00, /* Local THERM Limit R*/
+    [0x20] = 0x00, /* Local THERM Limit W*/
     [0x21] = 0x00, /* THERM Hysteresis R*/
+    [0x21] = 0x00, /* THERM Hysteresis W*/
     [0x22] = 0x00, /* Consecutive ALERT R*/
+    [0x22] = 0x00, /* Consecutive ALERT W*/
     [0x23] = 0x00, /* Status Register 2 R */
     [0x24] = 0x00, /* Configuration 2 Register R*/
+    [0x24] = 0x00, /* Configuration 2 Register W*/
     [0x30] = 0x00, /* Remote 2 Temperature Value High Byte R */
     [0x31] = 0x00, /* Remote 2 Temp High Limit High Byte R*/
+    [0x31] = 0x00, /* Remote 2 Temp High Limit High Byte W*/
     [0x32] = 0x00, /* Remote 2 Temp Low Limit High Byte R*/
+    [0x32] = 0x00, /* Remote 2 Temp Low Limit High Byte W*/
     [0x33] = 0x00, /* Remote 2 Temperature Value Low Byte R*/
     [0x34] = 0x00, /* Remote 2 Temperature Offset High Byte R*/
+    [0x34] = 0x00, /* Remote 2 Temperature Offset High Byte W*/
     [0x35] = 0x00, /* Remote 2 Temperature Offset Low Byte R*/
+    [0x35] = 0x00, /* Remote 2 Temperature Offset Low Byte W*/
     [0x36] = 0x00, /* Remote 2 Temp High Limit Low Byte R */
+    [0x36] = 0x00, /* Remote 2 Temp High Limit Low Byte W */
     [0x37] = 0x00, /* Remote 2 Temp Low Limit Low Byte R*/
+    [0x37] = 0x00, /* Remote 2 Temp Low Limit Low Byte W*/
     [0x39] = 0x00, /* Remote 2 THERM Limit R*/
+    [0x39] = 0x00, /* Remote 2 THERM Limit W*/
     [0x3D] = 0x00, /* Device ID R */
     [0x3E] = 0x00, /* Manufacturer ID R */
 };
@@ -129,7 +142,7 @@ void suite_tearDown(void)
 
 /* ================================ Tests =================================== */
 
-void test_probe(void)
+void test_probe()
 {
     POSTData postData;
 
@@ -153,7 +166,7 @@ void test_probe(void)
                       ADT7481_fxnTable.cb_probe(&I2C_DEV, &postData));
 }
 
-void test_get_status(void)
+void test_get_status()
 {
     uint8_t tempvalue = 0xff;
     ADT7481_regs[0x30] = 0x73;
@@ -177,7 +190,7 @@ void test_get_status(void)
                       ADT7481_fxnTable.cb_get_status(&I2C_DEV, 40, &tempvalue));
 }
 
-void test_set_config(void)
+void test_set_config()
 {
     int8_t limit = 0x62;
 
@@ -209,7 +222,7 @@ void test_set_config(void)
                       ADT7481_fxnTable.cb_set_config(&I2C_DEV, 40, &limit));
 }
 
-void test_get_config(void)
+void test_get_config()
 {
     int8_t limit = 0xFF;
     ADT7481_regs[0x31] = 0xA2;
@@ -243,7 +256,7 @@ void test_get_config(void)
                       ADT7481_fxnTable.cb_get_config(&I2C_DEV, 40, &limit));
 }
 
-void test_init(void)
+void test_init()
 {
     const ADT7481_Config fact_sdr_fpga_adt7481_cfg = {
         .lowlimit = -20,

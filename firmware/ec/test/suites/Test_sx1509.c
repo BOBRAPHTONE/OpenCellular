@@ -1,11 +1,3 @@
-/**
- * Copyright (c) 2017-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
- */
 #include "unity.h"
 
 #include "inc/devices/sx1509.h"
@@ -293,9 +285,9 @@ void test_ioexp_led_data_direction(void)
     TEST_ASSERT_EQUAL_HEX8(0xAB, SX1509_regs[0x0F]); // Reg A
     TEST_ASSERT_EQUAL_HEX8(0xD9, SX1509_regs[0x0E]); // Reg B
 
-    TEST_ASSERT_EQUAL(RETURN_OK, ioexp_led_config_data_direction(
-                                     &s_sx1509_dev, SX1509_REG_B, 0x98,
-                                     0x00)); // Reg A
+    TEST_ASSERT_EQUAL(
+        RETURN_OK, ioexp_led_config_data_direction(&s_sx1509_dev, SX1509_REG_B,
+                                                   0x98, 0x00)); // Reg A
     TEST_ASSERT_EQUAL_HEX8(0x98, SX1509_regs[0x0E]);
 }
 
